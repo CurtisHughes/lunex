@@ -1,7 +1,7 @@
 {
   "name": "lunex",
   "version": "0.0.2",
-  "description": "",
+  "description": "A lightweight, framework agnostic, state management library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -19,5 +19,9 @@
   },
   "dependencies": {
     "rxjs": "^7.5.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CurtisHughes/lunex"
   }
 }

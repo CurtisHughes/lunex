@@ -7,7 +7,7 @@ export type Action = {
 
 export type Store<S> = {
   state: BehaviorSubject<S>;
-  // getters: Record<string, Subscription>;
+  getters: Record<string, BehaviorSubject<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
   dispatch: <T extends Action = Action>(action: T) => Promise<void> | void;
 };
 
@@ -20,7 +20,7 @@ export type ActionSubjectContext<S> = {
 
 export type StoreProps<S> = {
   state: S;
-  // getters?: Record<string, <T>(s: S) => T>;
+  getters?: Record<string, (s: S) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
   plugins?: Plugin<ActionSubjectContext<S>>[];
 };
@@ -28,7 +28,7 @@ export type StoreProps<S> = {
 export function createStore<S>({
   state: initialState,
   actions = {},
-  // getters = {},
+  getters = {},
   plugins = [],
 }: StoreProps<S>): Store<S> {
   const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
@@ -51,9 +51,18 @@ export function createStore<S>({
   return {
     state: stateSubject,
     dispatch,
-    // getters: Object.entries(getters).reduce(
-    //   (acc, [key, value]) => ({ ...acc, [key]: stateSubject.subscribe(value) }),
-    //   {},
-    // ),
+    getters: Object.entries(getters).reduce((acc, [key, value]) => {
+      const initialValue = value(stateSubject.getValue());
+      const subject = new BehaviorSubject(initialValue);
+      stateSubject.subscribe((state) => {
+        const nextValue = value(state);
+        subject.next(nextValue);
+      });
+
+      return {
+        ...acc,
+        [key]: subject,
+      };
+    }, {}),
   };
 }

@@ -28,16 +28,28 @@ describe('createStore', () => {
           });
         },
       },
+      getters: {
+        isLoggedIn: (state: StoreState): boolean => !!state.user,
+      },
       plugins: [],
     };
   });
 
-  describe('store', () => {
-    test('updates the store when dispatching an action', async () => {
+  describe('state', () => {
+    test('updates the state when dispatching an action', async () => {
       const store = createStore(params);
       await store.dispatch({ type: 'login', payload: 'curtis' });
 
       expect(store.state.getValue()).toEqual({ user: 'curtis' });
+    });
+  });
+
+  describe('getters', () => {
+    test('updates the getters when dispatching an action', async () => {
+      const { getters, dispatch } = createStore(params);
+      await dispatch({ type: 'login', payload: 'curtis' });
+
+      expect(getters.isLoggedIn.getValue()).toEqual(true);
     });
   });
 });

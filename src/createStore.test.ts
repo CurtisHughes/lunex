@@ -38,7 +38,7 @@ describe('createStore', () => {
   describe('actions', () => {
     test('updates the state when dispatching an action', async () => {
       const store = createStore(params);
-      await store.dispatch({ type: 'login', payload: 'curtis' });
+      await store.actions.login('curtis');
 
       expect(store.state.getValue()).toEqual({ user: 'curtis' });
     });
@@ -46,8 +46,8 @@ describe('createStore', () => {
 
   describe('getters', () => {
     test('updates the getters when dispatching an action', async () => {
-      const { getters, dispatch } = createStore(params);
-      await dispatch({ type: 'login', payload: 'curtis' });
+      const { getters, actions } = createStore(params);
+      await actions.login('curtis');
 
       expect(getters.isLoggedIn.getValue()).toEqual(true);
     });
@@ -61,8 +61,8 @@ describe('createStore', () => {
         plugins: [plugin],
       });
 
-      await store.dispatch({ type: 'login', payload: 'curtis' });
-      await store.dispatch({ type: 'logout' });
+      await store.actions.login('curtis');
+      await store.actions.logout();
 
       expect(plugin).toHaveBeenCalledTimes(2);
     });
@@ -73,16 +73,10 @@ describe('createStore', () => {
         ...params,
         plugins: [plugin],
       });
-      await store.dispatch({ type: 'login', payload: 'curtis' });
+      await store.actions.login('curtis');
 
       expect(plugin).toHaveBeenCalledWith({
-        state: {
-          user: 'curtis'
-        },
-        action: {
-          type: 'login',
-          payload: 'curtis',
-        },
+        user: 'curtis',
       });
     });
   });

@@ -7,22 +7,21 @@ export type Action = {
 
 export type Store<S> = {
   state: BehaviorSubject<S>;
+  actions: Record<string, (payload?: any) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   getters: Record<string, BehaviorSubject<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
-  dispatch: <T extends Action = Action>(action: T) => Promise<void> | void;
 };
 
 export type Plugin<P> = (payload: P) => void;
 
 export type ActionSubjectContext<S> = {
   state: S;
-  action: Action;
 };
 
 export type StoreProps<S> = {
   state: S;
   getters?: Record<string, (s: S) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
-  plugins?: Plugin<ActionSubjectContext<S>>[];
+  plugins?: Plugin<S>[];
 };
 
 export function createStore<S>({
@@ -32,25 +31,24 @@ export function createStore<S>({
   plugins = [],
 }: StoreProps<S>): Store<S> {
   const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
-  const actionSubject: Subject<ActionSubjectContext<S>> = new Subject();
+  const actionSubject: Subject<S> = new Subject();
 
-  async function dispatch<M extends Action = Action>({ type, payload }: M) {
-    const state = await actions[type](stateSubject.value, payload);
-    actionSubject.next({
-      state,
-      action: {
-        type,
-        payload,
-      },
-    });
-  }
-
-  actionSubject.subscribe(({ state }) => stateSubject.next(state));
+  actionSubject.subscribe((state) => stateSubject.next(state));
   plugins.forEach((plugin) => actionSubject.subscribe(plugin));
 
   return {
     state: stateSubject,
-    dispatch,
+    actions: Object.entries(actions).reduce(
+      (acc, [key, action]) => ({
+        ...acc,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key]: async (payload: any) => {
+          const state = await action(stateSubject.value, payload);
+          actionSubject.next(state);
+        },
+      }),
+      {},
+    ),
     getters: Object.entries(getters).reduce((acc, [key, value]) => {
       const subject = new BehaviorSubject(value(stateSubject.getValue()));
       stateSubject.subscribe((state) => {

@@ -1,77 +1,59 @@
-import { BehaviorSubject, Subject } from "rxjs";
-
-export type Store<S> = {
-  state: BehaviorSubject<S>;
-  dispatch: <A extends Action = Action>(action: A) => Promise<void>;
-  commit: <T extends Mutation = Mutation>(mutation: T) => void;
-};
-
-type Plugin<P> = (payload: P) => void;
-
-export type CommitSubjectContext<S> = {
-  state: S;
-  mutation: Mutation;
-};
-
-export type Mutation = {
-  type: string;
-  payload?: any;
-};
-
-export type MutationContext<S = any> = {
-  state: S;
-};
+import { BehaviorSubject, Subject } from 'rxjs';
 
 export type Action = {
   type: string;
-  payload?: any;
+  payload?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
-export type ActionContext<S = any> = {
+export type Store<S> = {
+  state: BehaviorSubject<S>;
+  // getters: Record<string, Subscription>;
+  dispatch: <T extends Action = Action>(action: T) => Promise<void> | void;
+};
+
+export type Plugin<P> = (payload: P) => void;
+
+export type ActionSubjectContext<S> = {
   state: S;
-  commit: Store<S>["commit"];
+  action: Action;
 };
 
 export type StoreProps<S> = {
   state: S;
-  actions: Record<
-    string,
-    (context: ActionContext<S>, payload: any) => Promise<void> | void
-  >;
-  mutations: Record<string, (context: MutationContext<S>, payload: any) => S>;
-  plugins: Plugin<CommitSubjectContext<S>>[];
+  // getters?: Record<string, <T>(s: S) => T>;
+  actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  plugins?: Plugin<ActionSubjectContext<S>>[];
 };
 
 export function createStore<S>({
-  state,
-  actions,
-  mutations,
-  plugins,
+  state: initialState,
+  actions = {},
+  // getters = {},
+  plugins = [],
 }: StoreProps<S>): Store<S> {
-  const stateSubject: BehaviorSubject<S> = new BehaviorSubject(state);
-  const commitSubject: Subject<CommitSubjectContext<S>> = new Subject();
+  const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
+  const actionSubject: Subject<ActionSubjectContext<S>> = new Subject();
 
-  async function commit<M extends Mutation = Mutation>({ type, payload }: M) {
-    const state = mutations[type]({ state: stateSubject.value }, payload);
-    commitSubject.next({
+  async function dispatch<M extends Action = Action>({ type, payload }: M) {
+    const state = await actions[type](stateSubject.value, payload);
+    actionSubject.next({
       state,
-      mutation: {
+      action: {
         type,
         payload,
       },
     });
   }
 
-  async function dispatch<A extends Action = Action>({ type, payload }: A) {
-    return await actions[type]({ commit, state: stateSubject.value }, payload);
-  }
-
-  commitSubject.subscribe(({ state }) => stateSubject.next(state));
-  plugins.forEach((plugin) => commitSubject.subscribe(plugin));
+  actionSubject.subscribe(({ state }) => stateSubject.next(state));
+  plugins.forEach((plugin) => actionSubject.subscribe(plugin));
 
   return {
     state: stateSubject,
     dispatch,
-    commit,
+    // getters: Object.entries(getters).reduce(
+    //   (acc, [key, value]) => ({ ...acc, [key]: stateSubject.subscribe(value) }),
+    //   {},
+    // ),
   };
 }

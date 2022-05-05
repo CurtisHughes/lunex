@@ -2,10 +2,11 @@
   "compilerOptions": {
     "strict": true,
     "module": "esnext",
-    "target": "es2015",
+    "target": "es2017",
     "declaration": true,
     "outDir": "./dist",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "esModuleInterop": true
   },
   "include": ["src/**/*"]
 }

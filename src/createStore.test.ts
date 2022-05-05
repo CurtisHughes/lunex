@@ -35,7 +35,7 @@ describe('createStore', () => {
     };
   });
 
-  describe('state', () => {
+  describe('actions', () => {
     test('updates the state when dispatching an action', async () => {
       const store = createStore(params);
       await store.dispatch({ type: 'login', payload: 'curtis' });
@@ -50,6 +50,40 @@ describe('createStore', () => {
       await dispatch({ type: 'login', payload: 'curtis' });
 
       expect(getters.isLoggedIn.getValue()).toEqual(true);
+    });
+  });
+
+  describe('plugins', () => {
+    test('calls the plugin for every action', async () => {
+      const plugin = jest.fn();
+      const store = createStore({
+        ...params,
+        plugins: [plugin],
+      });
+
+      await store.dispatch({ type: 'login', payload: 'curtis' });
+      await store.dispatch({ type: 'logout' });
+
+      expect(plugin).toHaveBeenCalledTimes(2);
+    });
+
+    test('passes the action type and payload to the plugin', async () => {
+      const plugin = jest.fn();
+      const store = createStore({
+        ...params,
+        plugins: [plugin],
+      });
+      await store.dispatch({ type: 'login', payload: 'curtis' });
+
+      expect(plugin).toHaveBeenCalledWith({
+        state: {
+          user: 'curtis'
+        },
+        action: {
+          type: 'login',
+          payload: 'curtis',
+        },
+      });
     });
   });
 });

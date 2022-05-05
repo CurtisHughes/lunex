@@ -52,8 +52,7 @@ export function createStore<S>({
     state: stateSubject,
     dispatch,
     getters: Object.entries(getters).reduce((acc, [key, value]) => {
-      const initialValue = value(stateSubject.getValue());
-      const subject = new BehaviorSubject(initialValue);
+      const subject = new BehaviorSubject(value(stateSubject.getValue()));
       stateSubject.subscribe((state) => {
         const nextValue = value(state);
         subject.next(nextValue);

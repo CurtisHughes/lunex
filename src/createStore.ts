@@ -6,7 +6,8 @@ export type Action = {
 };
 
 export type Store<S> = {
-  state: BehaviorSubject<S>;
+  state: S;
+  $state: BehaviorSubject<S>;
   actions: Record<string, (payload?: any) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   getters: Record<string, BehaviorSubject<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
@@ -37,7 +38,10 @@ export function createStore<S>({
   plugins.forEach((plugin) => actionSubject.subscribe(plugin));
 
   return {
-    state: stateSubject,
+    $state: stateSubject,
+    get state() {
+      return stateSubject.getValue();
+    },
     actions: Object.entries(actions).reduce(
       (acc, [key, action]) => ({
         ...acc,
@@ -56,10 +60,14 @@ export function createStore<S>({
         subject.next(nextValue);
       });
 
-      return {
-        ...acc,
-        [key]: subject,
-      };
+      Object.defineProperty(acc, `$${key}`, { value: subject });
+      Object.defineProperty(acc, key, {
+        get() {
+          return subject.getValue();
+        },
+      });
+
+      return acc;
     }, {}),
   };
 }

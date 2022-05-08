@@ -1,7 +1,12 @@
 import { createStore, StoreProps } from './createStore';
 
+type User = {
+  name: string;
+  admin?: boolean;
+};
+
 type StoreState = {
-  user?: string;
+  user?: User;
 };
 
 describe('createStore', () => {
@@ -11,7 +16,7 @@ describe('createStore', () => {
     params = {
       state: {},
       actions: {
-        login: async (_state: StoreState, payload: string) => {
+        login: async (_state: StoreState, payload: User) => {
           return await new Promise<StoreState>((resolve) => {
             setTimeout(() => {
               return resolve({
@@ -30,6 +35,7 @@ describe('createStore', () => {
       },
       getters: {
         isLoggedIn: (state: StoreState): boolean => !!state.user,
+        isAdmin: (state: StoreState): boolean => !!state.user?.admin,
       },
       plugins: [],
     };
@@ -38,18 +44,34 @@ describe('createStore', () => {
   describe('actions', () => {
     test('updates the state when dispatching an action', async () => {
       const store = createStore(params);
-      await store.actions.login('curtis');
+      await store.actions.login({ name: 'curtis' });
 
-      expect(store.state.getValue()).toEqual({ user: 'curtis' });
+      expect(store.state).toEqual({ user: { name: 'curtis' } });
+    });
+
+    test('updates the state subject when dispatching an action', async () => {
+      const store = createStore(params);
+      await store.actions.login({ name: 'curtis' });
+
+      expect(store.$state.getValue()).toEqual({ user: { name: 'curtis' } });
     });
   });
 
   describe('getters', () => {
     test('updates the getters when dispatching an action', async () => {
       const { getters, actions } = createStore(params);
-      await actions.login('curtis');
+      await actions.login({ name: 'curtis', admin: true });
 
-      expect(getters.isLoggedIn.getValue()).toEqual(true);
+      expect(getters.isLoggedIn).toEqual(true);
+      expect(getters.isAdmin).toEqual(true);
+    });
+
+    test('updates the getter subjects when dispatching an action', async () => {
+      const { getters, actions } = createStore(params);
+      await actions.login({ name: 'curtis' });
+
+      expect(getters.$isLoggedIn.getValue()).toEqual(true);
+      expect(getters.$isAdmin.getValue()).toEqual(false);
     });
   });
 
@@ -67,7 +89,7 @@ describe('createStore', () => {
       expect(plugin).toHaveBeenCalledTimes(2);
     });
 
-    test('passes the action type and payload to the plugin', async () => {
+    test('passes the current state to the plugin', async () => {
       const plugin = jest.fn();
       const store = createStore({
         ...params,

@@ -60,6 +60,8 @@ export function createStore<S>({
         subject.next(nextValue);
       });
 
+      /* Object.defineProperty is necessary (instead of spread) to preserve getters and setters
+      https://zellwk.com/blog/copy-properties-of-one-object-to-another-object/ */
       Object.defineProperty(acc, `$${key}`, { value: subject });
       Object.defineProperty(acc, key, {
         get() {

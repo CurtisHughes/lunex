@@ -1,6 +1,6 @@
 # Lunex
 
-Lunex is a lightweight, framework agnostic, state management **library** based on the [Vuex state management pattern](https://vuex.vuejs.org/#what-is-a-state-management-pattern).
+Lunex is a [lightweight](https://bundlephobia.com/package/lunex), framework agnostic, typescript friendly, state management **library** inspired by [Vuex](https://vuex.vuejs.org/#what-is-a-state-management-pattern)/[Pinia](https://pinia.vuejs.org/).
 
 ## Installation
 
@@ -12,8 +12,49 @@ yarn add lunex
 npm install lunex
 ```
 
-## Core Concepts
+## Getting Started
 
-[Vuex's official documenation](https://vuex.vuejs.org/#what-is-a-state-management-pattern) does a great job of outlining the core concepts and reasoning behind the state management pattern. In short, shared state within an application is contained within a store. Consumers can subscribe to the value of the state, commit [mutations](https://vuex.vuejs.org/guide/mutations.html) on the state synchronously, or dispatch [actions](https://vuex.vuejs.org/guide/actions.html) to perform mutations based on the result of asynchronous logic. 
+Create a store:
 
-<img width="400px" src="./assets/lunex.jpg" />
+```ts
+// authStore.ts
+import { createStore } from 'lunex';
+import { api } from '~/api';
+
+type User = {
+  name: string;
+  admin?: boolean;
+};
+
+type StoreState = {
+  user?: User;
+};
+
+export const authStore = createStore<StoreState>({
+  state: {},
+  actions: {
+    login: async (state: StoreState, payload: any) => {
+      return await api.login(payload.username, payload.password);
+    },
+    login: async (state: StoreState) => {
+      await api.logout();
+      return {};
+    },
+  },
+  getters: {
+    isLoggedIn: (state: StoreState): boolean => !!state.user,
+    isAdmin: (state: StoreState): boolean => !!state.user?.admin,
+  },
+  plugins: [(state) => console.log(`STATE: `, JSON.stringify(state))],
+});
+```
+
+then _use_ the store:
+
+```tsx
+// react example
+```
+
+```tsx
+// vue example
+```

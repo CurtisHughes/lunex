@@ -8,7 +8,7 @@ export type Store<
   state: S;
   state$: BehaviorSubject<S>;
   actions: {
-    [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<void> | void;
+    [K in keyof A]: (...payload: Parameters<A[K]>) => ReturnType<A[K]>;
   };
   getters: G & {
     [P in keyof G as `${string & P}$`]: BehaviorSubject<G[P]>;
@@ -67,7 +67,7 @@ export function createStore<
         },
       }),
       {} as {
-        [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<void> | void;
+        [K in keyof A]: (...payload: Parameters<A[K]>) => ReturnType<A[K]>;
       },
     ),
     getters: Object.entries(getters).reduce((acc, [key, value]) => {

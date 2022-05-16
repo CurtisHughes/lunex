@@ -10,9 +10,9 @@ type StoreState = {
 };
 
 type StoreGetters = {
-  isLoggedIn: (state: StoreState) => boolean;
-  isAdmin: (state: StoreState) => boolean;
-};
+  isLoggedIn: boolean;
+  isAdmin: boolean;
+}
 
 describe('createStore', () => {
   let params: StoreProps<StoreState, StoreGetters>;

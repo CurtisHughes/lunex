@@ -13,25 +13,22 @@ export type Store<S, G extends Record<string, any>> = {
 export type Plugin<P> = (payload: P) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type StoreProps<S, G extends Record<string, (s: S) => any>> = {
+export type StoreProps<S, G extends Record<string, any>> = {
   state: S;
-  getters?: G;
+  getters?: {
+    [K in keyof G]: (state: S) => G[K];
+  };
   actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
   plugins?: Plugin<S>[];
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createStore<S, G extends Record<string, (s: S) => any>>({
+export function createStore<S, G extends Record<string, any>>({
   state: initialState,
   actions = {},
   getters = {} as G,
   plugins = [],
-}: StoreProps<S, G>): Store<
-  S,
-  {
-    [P in keyof G]: ReturnType<G[P]>;
-  }
-> {
+}: StoreProps<S, G>): Store<S, G> {
   const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
   const actionSubject: Subject<S> = new Subject();
 

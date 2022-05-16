@@ -53,7 +53,7 @@ describe('createStore', () => {
       const store = createStore(params);
       await store.actions.login({ name: 'curtis' });
 
-      expect(store.$state.getValue()).toEqual({ user: { name: 'curtis' } });
+      expect(store.state$.getValue()).toEqual({ user: { name: 'curtis' } });
     });
   });
 

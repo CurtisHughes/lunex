@@ -7,7 +7,7 @@ export type Action = {
 
 export type Store<S> = {
   state: S;
-  $state: BehaviorSubject<S>;
+  state$: BehaviorSubject<S>;
   actions: Record<string, (payload?: any) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   getters: Record<string, BehaviorSubject<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
@@ -38,7 +38,7 @@ export function createStore<S>({
   plugins.forEach((plugin) => actionSubject.subscribe(plugin));
 
   return {
-    $state: stateSubject,
+    state$: stateSubject,
     get state() {
       return stateSubject.getValue();
     },

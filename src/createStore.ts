@@ -1,10 +1,5 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 
-export type Action = {
-  type: string;
-  payload?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-};
-
 export type Store<S> = {
   state: S;
   state$: BehaviorSubject<S>;
@@ -13,10 +8,6 @@ export type Store<S> = {
 };
 
 export type Plugin<P> = (payload: P) => void;
-
-export type ActionSubjectContext<S> = {
-  state: S;
-};
 
 export type StoreProps<S> = {
   state: S;

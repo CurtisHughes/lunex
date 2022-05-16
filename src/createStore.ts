@@ -1,27 +1,37 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 
-export type Store<S> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Store<S, G extends Record<string, any>> = {
   state: S;
   state$: BehaviorSubject<S>;
   actions: Record<string, (payload?: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
-  getters: Record<string, BehaviorSubject<any> | any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  getters: G & {
+    [P in keyof G as `${string & P}$`]: BehaviorSubject<G[P]>;
+  };
 };
 
 export type Plugin<P> = (payload: P) => void;
 
-export type StoreProps<S> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type StoreProps<S, G extends Record<string, (s: S) => any>> = {
   state: S;
-  getters?: Record<string, (s: S) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  getters?: G;
   actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
   plugins?: Plugin<S>[];
 };
 
-export function createStore<S>({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createStore<S, G extends Record<string, (s: S) => any>>({
   state: initialState,
   actions = {},
-  getters = {},
+  getters = {} as G,
   plugins = [],
-}: StoreProps<S>): Store<S> {
+}: StoreProps<S, G>): Store<
+  S,
+  {
+    [P in keyof G]: ReturnType<G[P]>;
+  }
+> {
   const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
   const actionSubject: Subject<S> = new Subject();
 
@@ -61,6 +71,6 @@ export function createStore<S>({
       });
 
       return acc;
-    }, {}),
+    }, {} as { [P in keyof G]: ReturnType<G[P]> } & { [P in keyof { [P in keyof G]: ReturnType<G[P]> } as `${string & P}$`]: BehaviorSubject<{ [P in keyof G]: ReturnType<G[P]> }[P]> }),
   };
 }

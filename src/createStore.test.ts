@@ -9,8 +9,13 @@ type StoreState = {
   user?: User;
 };
 
+type StoreGetters = {
+  isLoggedIn: (state: StoreState) => boolean;
+  isAdmin: (state: StoreState) => boolean;
+};
+
 describe('createStore', () => {
-  let params: StoreProps<StoreState>;
+  let params: StoreProps<StoreState, StoreGetters>;
 
   beforeEach(() => {
     params = {

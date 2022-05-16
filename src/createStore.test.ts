@@ -70,8 +70,8 @@ describe('createStore', () => {
       const { getters, actions } = createStore(params);
       await actions.login({ name: 'curtis' });
 
-      expect(getters.$isLoggedIn.getValue()).toEqual(true);
-      expect(getters.$isAdmin.getValue()).toEqual(false);
+      expect(getters.isLoggedIn$.getValue()).toEqual(true);
+      expect(getters.isAdmin$.getValue()).toEqual(false);
     });
   });
 

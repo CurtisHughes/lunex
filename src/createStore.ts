@@ -1,10 +1,15 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Store<S, G extends Record<string, any>> = {
+export type Store<
+  S,
+  G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+> = {
   state: S;
   state$: BehaviorSubject<S>;
-  actions: Record<string, (payload?: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  actions: {
+    [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<S> | S;
+  };
   getters: G & {
     [P in keyof G as `${string & P}$`]: BehaviorSubject<G[P]>;
   };
@@ -12,23 +17,35 @@ export type Store<S, G extends Record<string, any>> = {
 
 export type Plugin<P> = (payload: P) => void;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type StoreProps<S, G extends Record<string, any>> = {
+export type StoreProps<
+  S,
+  G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+> = {
   state: S;
   getters?: {
     [K in keyof G]: (state: S) => G[K];
   };
-  actions?: Record<string, (state: S, payload: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  actions?: {
+    [K in keyof A]: (state: S, ...payload: Parameters<A[K]>) => Promise<S> | S;
+  };
   plugins?: Plugin<S>[];
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createStore<S, G extends Record<string, any>>({
+export function createStore<
+  S,
+  G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+>({
   state: initialState,
-  actions = {},
-  getters = {} as G,
+  actions = {} as {
+    [K in keyof A]: (state: S, ...payload: Parameters<A[K]>) => Promise<S> | S;
+  },
+  getters = {} as {
+    [K in keyof G]: (state: S) => G[K];
+  },
   plugins = [],
-}: StoreProps<S, G>): Store<S, G> {
+}: StoreProps<S, G, A>): Store<S, G, A> {
   const stateSubject: BehaviorSubject<S> = new BehaviorSubject(initialState);
   const actionSubject: Subject<S> = new Subject();
 
@@ -49,7 +66,9 @@ export function createStore<S, G extends Record<string, any>>({
           actionSubject.next(state);
         },
       }),
-      {},
+      {} as {
+        [K in keyof A]: (...payload: Parameters<A[K]>) => S | Promise<S>;
+      },
     ),
     getters: Object.entries(getters).reduce((acc, [key, value]) => {
       const subject = new BehaviorSubject(value(stateSubject.getValue()));

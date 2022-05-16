@@ -14,8 +14,13 @@ type StoreGetters = {
   isAdmin: boolean;
 }
 
+type StoreActions = {
+  login: (payload: User) => Promise<StoreState>;
+  logout: () => Promise<StoreState>;
+}
+
 describe('createStore', () => {
-  let params: StoreProps<StoreState, StoreGetters>;
+  let params: StoreProps<StoreState, StoreGetters, StoreActions>;
 
   beforeEach(() => {
     params = {

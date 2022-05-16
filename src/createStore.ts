@@ -3,8 +3,8 @@ import { BehaviorSubject, Subject } from 'rxjs';
 export type Store<S> = {
   state: S;
   state$: BehaviorSubject<S>;
-  actions: Record<string, (payload?: any) => any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-  getters: Record<string, BehaviorSubject<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  actions: Record<string, (payload?: any) => Promise<S> | S>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  getters: Record<string, BehaviorSubject<any> | any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 export type Plugin<P> = (payload: P) => void;

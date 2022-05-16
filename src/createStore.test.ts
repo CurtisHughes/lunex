@@ -15,8 +15,8 @@ type StoreGetters = {
 }
 
 type StoreActions = {
-  login: (payload: User) => Promise<StoreState>;
-  logout: () => Promise<StoreState>;
+  login: (payload: User) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 describe('createStore', () => {

@@ -3,12 +3,12 @@ import { BehaviorSubject, Subject } from 'rxjs';
 export type Store<
   S,
   G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
-  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<void> | void>, // eslint-disable-line @typescript-eslint/no-explicit-any
 > = {
   state: S;
   state$: BehaviorSubject<S>;
   actions: {
-    [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<S> | S;
+    [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<void> | void;
   };
   getters: G & {
     [P in keyof G as `${string & P}$`]: BehaviorSubject<G[P]>;
@@ -20,7 +20,7 @@ export type Plugin<P> = (payload: P) => void;
 export type StoreProps<
   S,
   G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
-  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<void> | void>, // eslint-disable-line @typescript-eslint/no-explicit-any
 > = {
   state: S;
   getters?: {
@@ -35,7 +35,7 @@ export type StoreProps<
 export function createStore<
   S,
   G extends Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
-  A extends Record<string, (payload?: any) => Promise<S> | S>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  A extends Record<string, (payload?: any) => Promise<void> | void>, // eslint-disable-line @typescript-eslint/no-explicit-any
 >({
   state: initialState,
   actions = {} as {
@@ -67,7 +67,7 @@ export function createStore<
         },
       }),
       {} as {
-        [K in keyof A]: (...payload: Parameters<A[K]>) => S | Promise<S>;
+        [K in keyof A]: (...payload: Parameters<A[K]>) => Promise<void> | void;
       },
     ),
     getters: Object.entries(getters).reduce((acc, [key, value]) => {

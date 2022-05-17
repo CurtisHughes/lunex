@@ -71,19 +71,24 @@ console.log(JSON.stringify(authStore.state));
 
 // {}
 
-authStore.state$.subscribe((state) =>
+const unsubscribeFromState = authStore.state$.subscribe((state) =>
   console.log(`SUBSCRIPTION(state$):  ${JSON.stringify(state)}`),
 );
+
+// SUBSCRIPTION(state$): {}
 
 console.log(JSON.stringify(authStore.isLoggedIn));
 
 // false
 
-authStore.isLoggedIn$.subscribe((isLoggedIn) =>
-  console.log(
-    `SUBSCRIPTION(isLoggedIn$): user is ${isLoggedIn ? '' : 'not'} logged in`,
-  ),
+const unsubscribeFromIsLoggedIn = authStore.isLoggedIn$.subscribe(
+  (isLoggedIn) =>
+    console.log(
+      `SUBSCRIPTION(isLoggedIn$): user is ${isLoggedIn ? '' : 'not'} logged in`,
+    ),
 );
+
+// SUBSCRIPTION(isLoggedIn$): user is not logged in
 
 authStore.login({ username: 'user-1', password: 'pass123' });
 
@@ -108,4 +113,8 @@ authStore.logout();
 // SUBSCRIPTION(state$):  {}
 
 // SUBSCRIPTION(isLoggedIn$): user is not logged in
+
+unsubscribeFromState();
+
+unsubscribeFromIsLoggedIn();
 ```

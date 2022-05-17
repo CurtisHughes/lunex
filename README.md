@@ -23,38 +23,89 @@ import { api } from '~/api';
 
 type User = {
   name: string;
-  admin?: boolean;
 };
 
 type StoreState = {
   user?: User;
 };
 
-export const authStore = createStore<StoreState>({
+type StoreGetters = {
+  isLoggedIn: boolean;
+};
+
+type StoreActions = {
+  login: (payload: User) => Promise<void>;
+  logout: () => Promise<void>;
+};
+
+export const authStore = createStore<StoreState, StoreGetters, StoreActions>({
   state: {},
   actions: {
-    login: async (state: StoreState, payload: any) => {
-      return await api.login(payload.username, payload.password);
+    login: async (
+      state: StoreState,
+      payload: { username: string; password: string },
+    ) => {
+      const user = await api.login(username, password);
+      return { user };
     },
-    login: async (state: StoreState) => {
+    logout: async (state: StoreState) => {
       await api.logout();
       return {};
     },
   },
   getters: {
     isLoggedIn: (state: StoreState): boolean => !!state.user,
-    isAdmin: (state: StoreState): boolean => !!state.user?.admin,
   },
-  plugins: [(state) => console.log(`STATE: `, JSON.stringify(state))],
+  plugins: [
+    (state: StoreState) => console.debug('PLUGIN: ', JSON.stringify(state)),
+  ],
 });
 ```
 
 then _use_ the store:
 
-```tsx
-// react example
-```
+```ts
+import { authStore } from '~/stores/authStore';
 
-```tsx
-// vue example
+console.log(JSON.stringify(authStore.state));
+
+// {}
+
+authStore.state$.subscribe((state) =>
+  console.log(`SUBSCRIPTION(state$):  ${JSON.stringify(state)}`),
+);
+
+console.log(JSON.stringify(authStore.isLoggedIn));
+
+// false
+
+authStore.isLoggedIn$.subscribe((isLoggedIn) =>
+  console.log(
+    `SUBSCRIPTION(isLoggedIn$): user is ${isLoggedIn ? '' : 'not'} logged in`,
+  ),
+);
+
+authStore.login({ username: 'user-1', password: 'pass123' });
+
+// PLUGIN: { user: { name: 'curtis' } }
+
+// SUBSCRIPTION(state$):  { user: { name: 'curtis' } }
+
+// SUBSCRIPTION(isLoggedIn$): user is logged in
+
+console.log(JSON.stringify(authStore.state));
+
+// { user: { name: 'curtis' } }
+
+console.log(JSON.stringify(authStore.isLoggedIn));
+
+// true
+
+authStore.logout();
+
+// PLUGIN: {}
+
+// SUBSCRIPTION(state$):  {}
+
+// SUBSCRIPTION(isLoggedIn$): user is not logged in
 ```
